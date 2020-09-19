@@ -1,0 +1,6 @@
+Thi>]8s text for test,
+new string,
+another one,
+*** 888 ***
+and another one;
+123456889 (test).  
