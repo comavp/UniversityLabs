@@ -1,0 +1,58 @@
+Номер НЗБП в СВИ-1 (p) - 3
+Способ встраивания в СВИ-1 - (3.4)
+Значение сигма в СВИ-4 - 8 
+Способ встраивания в СВИ-4 - (3.12)
+
+clc;
+clear;
+close all;
+
+layer = 3;
+sigma = 8;
+
+C = imread('goldhill.tif');
+W = imread('ornament.tif');
+
+##figure;
+##subplot(1, 2, 1);
+##imshow(C);
+##title('Изначальное изображение');
+##subplot(1, 2, 2);
+##title('Встраиваемое изображение');
+##imshow(W);
+printTwoImages('Исходные данные', C, W, 'Изначальное изображение', 'Встраиваемое изображение');
+
+% СВИ-1
+##tmp = bitget(C, layer);
+##tmp = bitxor(tmp, W);
+##C_W = bitset(C, layer, tmp);
+C_W = lsbEmbed(C, W, layer);
+
+##tmp1 = bitxor(C_W, C);
+##W_R = bitget(tmp1, layer);
+W_R = lsbExtract(C_W, C, layer);
+
+##figure;
+##subplot(1, 2, 1);
+##imshow(C_W);
+##title('Изображение со встроенной картинкой');
+##subplot(1, 2, 2);
+##imshow(W_R);
+##title('Восстановленное изображение');
+printTwoImages('СВИ-1', C_W, W_R, 'Изображение со встроенной картинкой', 'Восстановленное изображение');
+
+noise = randi(sigma - 1, size(C));
+%C_W = floor(double(C)./(2*sigma)).*(2*sigma) + double(bitget(uint8(W), 8)).*sigma + noise;
+C_W = floor(double(C)./(2*sigma)).*(2*sigma) + double(W).*sigma + noise;
+W_R = C_W - noise - floor(double(C)./(2*sigma)).*(2*sigma);
+W_R = W_R*255/8;
+W_R_another = C_W - noise;
+W_R_another = W_R_another / sigma;
+W_R_another = rem(W_R_another, 2);
+printTwoImages('СВИ-4', uint8(C_W), uint8(W_R), 'Изображение со встроенной картинкой', 'Восстановленное изображение');
+
+figure;
+imshow(uint8(W_R_another*255));
+
+clear;
+                
