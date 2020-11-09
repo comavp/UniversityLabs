@@ -25,6 +25,7 @@ d_23(x, y) = vpa([x,y]*(inv(B3)-inv(B2))*[x;y]+2*(M2'*inv(B2)-M3'*inv(B3))*[x;y]
 syms d_31(x, y)
 d_31(x, y) = vpa([x,y]*(inv(B3)-inv(B1))*[x;y]+2*(M1'*inv(B1)-M3'*inv(B3))*[x;y]+log(norm(B1)/norm(B3))+2*log(priorProbability1/priorProbability3)-M1'*inv(B1)*M1+M3'*inv(B3)*M3);
 
+figure('Name', 'Байесовский с разными B', 'NumberTitle', 'off');
 hold on;
 scatter(Y1(1, :), Y1(2, :), 5, 'red', 'fill');
 scatter(Y2(1, :), Y2(2, :), 5, 'blue', 'fill');
@@ -36,3 +37,30 @@ set(rb, 'LineColor', 'y');
 set(bg, 'LineColor', 'c');
 set(gr, 'LineColor', 'm');
 hold off;
+
+%Оценка вероятностей
+p1est = 0;
+for i=1:N
+   p1est = p1est + heaviside(d_12(Y2(1,i), Y2(2,i))); 
+end
+p1est = p1est / N;
+
+p2est = 0;
+for i=1:N
+   p2est = p2est + 1 - heaviside(d_12(Y1(1,i), Y1(2,i))); 
+end
+p2est = p2est / N;
+fprintf('Оценка вероятности 1 = %.4f \n', double(p1est));
+fprintf('Оценка вероятности 2 = %.4f \n', double(p2est));
+
+%Погрешность оценок
+error1=sqrt((1-p1est)/(N*p1est));
+fprintf('Погрешность 1 =  %.4f \n', double(error1));
+error2=sqrt((1-p2est)/(N*p2est));
+fprintf('Погрешность 2 =  %.4f \n', double(error2));
+
+%Теоретический размер выборки
+eps = 0.05;
+Neps = (p1est*(1-p1est))/(p1est^2*eps^2);
+Neps = round(Neps);
+fprintf('Размер выборки =  %d \n', Neps);

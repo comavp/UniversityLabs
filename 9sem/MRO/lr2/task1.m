@@ -15,6 +15,7 @@ priorProbability1 = 1/2; priorProbability2 = 1/2;
 syms d_12(x, y);
 digits(3);
 d_12(x, y) = vpa(((M1-M2)'*inv(B))*[x; y]-((1/2)*(M1+M2)'*inv(B)*(M1-M2)+log(priorProbability1/priorProbability2)));
+figure('Name', 'Байесовский', 'NumberTitle', 'off');
 hold on;
 ezplot(d_12, [-3, 3]);
 scatter(X1(1, :), X1(2, :), 10, 'r', 'fill');
@@ -23,8 +24,13 @@ hold off;
 
 %Вероятности ошибочной классификации
 mDistance = getMahalanobisDistance(M1, M2, B);
-lambda = log(priorProbability1/priorProbability2)
-probabilityOfMisclassification1 = 1-(1+erf(((0.5*mDistance+lambda)/sqrt(mDistance))/sqrt(2)))/2
-probabilityOfMisclassification2 = (1+erf(((-0.5*mDistance+lambda)/sqrt(mDistance))/sqrt(2)))/2
-totalProbabilityOfMisclassification = (probabilityOfMisclassification1+probabilityOfMisclassification2)/2
-totalRisk = probabilityOfMisclassification1
+lambda = log(priorProbability1/priorProbability2);
+probabilityOfMisclassification1 = 1-(1+erf(((0.5*mDistance+lambda)/sqrt(mDistance))/sqrt(2)))/2;
+probabilityOfMisclassification2 = (1+erf(((-0.5*mDistance+lambda)/sqrt(mDistance))/sqrt(2)))/2;
+totalProbabilityOfMisclassification = (probabilityOfMisclassification1+probabilityOfMisclassification2)/2;
+totalRisk = probabilityOfMisclassification1;
+
+fprintf('Вероятность ошибочной классификации 1 =  %.4f \n', double(probabilityOfMisclassification1));
+fprintf('Вероятность ошибочной классификации 2 =  %.4f \n', double(probabilityOfMisclassification2));
+fprintf('Суммарная вероятность ошибочной классификации =  %.4f \n', double(totalProbabilityOfMisclassification));
+fprintf('Общий риск =  %.4f \n', double(totalRisk));
