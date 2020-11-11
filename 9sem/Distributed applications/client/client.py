@@ -14,11 +14,11 @@ chunkSize = 4096
 
 
 class ImageInfo:
-    def __init__(self, imageHeight, imageWidth, imageName, image):
+    def __init__(self, imageHeight, imageWidth, imageName, imageSize):
         self.imageHeight = imageHeight
         self.imageWidth = imageWidth
         self.imageName = imageName
-        self.image = image
+        self.imageSize = imageSize
 
 
 def addNoiseToImageAndSave(image):
@@ -33,25 +33,50 @@ def getResponse(s_sock):
     return str(response)
 
 
+def sendImageInfo(s_sock, dataToSend):
+    isImageInfoReceived = False
+    while not isImageInfoReceived:
+        s_sock.send(dataToSend)
+        logging.info('Client sent image info')
+        s_sock.send('STOP'.encode())
+        if getResponse(s_sock) == 'OK':
+            isImageInfoReceived = True
+    logging.info('Server successfully received image info')
+
+
+def sendImage(s_sock, imageAsStringOfBytes, imageName):
+    #corruptedImage1 = imageAsStringOfBytes[:len(imageAsStringOfBytes) - 1000] + imageAsStringOfBytes[len(imageAsStringOfBytes) - 500:]
+    corruptedImage = imageAsStringOfBytes[:len(imageAsStringOfBytes) - 10000]
+    s_sock.sendall(corruptedImage)
+    logging.info('Client sent image with name: \'' + imageName + '\'')
+    s_sock.send('STOP'.encode())
+    if getResponse(s_sock) == 'OK':
+        logging.info('Server successfully received image with name: \'' + imageName + '\'')
+    else:
+        logging.error('Internal server error.')
+
+
 def sendRequest(s_sock):
     image = imread(imageName)
     imageWithNoise = addNoiseToImageAndSave(image)
-    width, height, numberOfColorChannels = image.shape
-    imageInfo = ImageInfo(height, width, imageName, imageWithNoise)
+    file = open(imageWithNoiseName, 'rb')
+    imageAsStringOfBytes = b''
+    while True:
+        chunk = file.read(chunkSize)
+        if not chunk: break
+        imageAsStringOfBytes += chunk
+    file.close()
+
+    width, height, numberOfColorChannels = imageWithNoise.shape
+    imageInfo = ImageInfo(height, width, imageName, len(imageAsStringOfBytes))
     dataToSend = pickle.dumps(imageInfo)
 
     size = len(dataToSend)
     s_sock.send(str(size).encode())
     logging.info('Client sent data size(' + str(size) + ') to server')
     if 'OK' == getResponse(s_sock):
-        isImageReceived = False
-        while not isImageReceived:
-            #s_sock.send(dataToSend)
-            logging.info('Client sent image with name: \'' + imageInfo.imageName + '\'')
-            s_sock.send('STOP'.encode())
-            if getResponse(s_sock) == 'OK':
-                isImageReceived = True
-
+        sendImageInfo(s_sock, dataToSend)
+        sendImage(s_sock, imageAsStringOfBytes, imageName)
 
 
 if __name__ == "__main__":
@@ -65,5 +90,5 @@ if __name__ == "__main__":
             except ConnectionRefusedError:
                 logging.error('Connection to server with host=\'' + str(host) + '\' and port=\'' + str(port) +
                       '\' cannot be established')
-            except Exception:
-                logging.error('Client finished it\'s work due to unexpected exception')
+            #except Exception:
+                #logging.error('Client finished it\'s work due to unexpected exception')
