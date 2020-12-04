@@ -46,7 +46,7 @@ def sendImageInfo(s_sock, dataToSend):
 
 def sendImage(s_sock, imageAsStringOfBytes, imageName):
     #corruptedImage1 = imageAsStringOfBytes[:len(imageAsStringOfBytes) - 1000] + imageAsStringOfBytes[len(imageAsStringOfBytes) - 500:]
-    corruptedImage = imageAsStringOfBytes[:len(imageAsStringOfBytes) - 10000]
+    corruptedImage = imageAsStringOfBytes[:len(imageAsStringOfBytes) - 30000]
     s_sock.sendall(corruptedImage)
     logging.info('Client sent image with name: \'' + imageName + '\'')
     s_sock.send('STOP'.encode())

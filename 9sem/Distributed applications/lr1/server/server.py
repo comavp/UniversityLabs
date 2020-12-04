@@ -74,7 +74,7 @@ def recieveAndSaveImage(connect, imageSize):
         currentSize += len(chunk)
         data += chunk
     sendResponse(connect)
-    if (currentSize != imageSize):
+    if currentSize != imageSize:
         logging.error('Image was corrupted. Server is trying to recover image.')
         data += ''.ljust(imageSize - currentSize, '0').encode()
     else:
